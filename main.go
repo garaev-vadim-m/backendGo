@@ -1,15 +1,14 @@
 package main
 
 import (
-	"courseGolang/http/config"
+	"courseGolang/http/handlers"
 	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	cfg := config.NewConfig()
-
+	// Создаем роутер с дефолтными настройками (включает Logger и Recovery middleware)
 	router := gin.Default()
 
 	router.GET("/", func(c *gin.Context) {
@@ -18,15 +17,16 @@ func main() {
 			"version": "1.0.0",
 		})
 	})
-
+	// Группируем маршруты для API
 	api := router.Group("/api")
 	{
-		api.GET("/users", handlers.GetAllUsers)
-		api.GET("/users/:id", handlers.GetUserByID)
+		api.GET("/users", handlers.GetUsers)
+		api.GET("/users/:id", handlers.GetUser)
 	}
 
-	log.Printf("Сервер запущен на порту %s", cfg.Port)
-	if err := router.Run(cfg.Port); err != nil {
+	// Запускаем сервер на порту 8080
+	log.Println("Сервер запущен на порту 8080")
+	if err := router.Run(":8080"); err != nil {
 		log.Fatal("Ошибка запуска сервера:", err)
 	}
 }
