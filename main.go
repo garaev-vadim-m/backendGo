@@ -1,32 +1,33 @@
 package main
 
 import (
-	"courseGolang/http/handlers"
 	"log"
+	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
+
+	"go-users-api/db"
+	"go-users-api/handlers"
+
+	"github.com/go-chi/cors"
 )
 
 func main() {
-	// Создаем роутер с дефолтными настройками (включает Logger и Recovery middleware)
-	router := gin.Default()
+	db.InitDB()
 
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "API работает!",
-			"version": "1.0.0",
-		})
+	r := chi.NewRouter()
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"}, // потом сузим
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowCredentials: false,
+	}))
+	r.Route("/api", func(r chi.Router) {
+		r.Get("/users", handlers.GetUsers)
+		r.Get("/users/{id}", handlers.GetUserByID)
+		r.Post("/login", handlers.Login)
 	})
-	// Группируем маршруты для API
-	api := router.Group("/api")
-	{
-		api.GET("/users", handlers.GetUsers)
-		api.GET("/users/:id", handlers.GetUser)
-	}
 
-	// Запускаем сервер на порту 8080
-	log.Println("Сервер запущен на порту 8080")
-	if err := router.Run(":8080"); err != nil {
-		log.Fatal("Ошибка запуска сервера:", err)
-	}
+	log.Println("Server started at :8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }

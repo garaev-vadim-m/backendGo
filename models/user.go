@@ -9,7 +9,3 @@ type User struct {
 	Country  string `json:"country"`
 	Password string `json:"password"`
 }
-
-func (User) TableName() string {
-	return "users"
-}
