@@ -8,6 +8,7 @@ import (
 
 	"go-users-api/db"
 	"go-users-api/handlers"
+	"go-users-api/middleware"
 
 	"github.com/go-chi/cors"
 )
@@ -23,9 +24,14 @@ func main() {
 		AllowCredentials: false,
 	}))
 	r.Route("/api", func(r chi.Router) {
-		r.Get("/users", handlers.GetUsers)
-		r.Get("/users/{id}", handlers.GetUserByID)
 		r.Post("/login", handlers.Login)
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AuthMiddleware)
+
+			r.Get("/users", handlers.GetUsers)
+			r.Get("/users/{id}", handlers.GetUserByID)
+		})
 	})
 
 	log.Println("Server started at :8080")

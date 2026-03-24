@@ -8,6 +8,7 @@ import (
 
 	"go-users-api/db"
 	"go-users-api/models"
+	"go-users-api/utils"
 
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -17,6 +18,8 @@ type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+var tokenBlacklist = make(map[string]bool)
 
 func GetUsers(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
@@ -130,5 +133,30 @@ func Login(response http.ResponseWriter, request *http.Request) {
 	// пока просто ответ
 	user.Password = ""
 
-	json.NewEncoder(response).Encode(user)
+	// генерируем JWT
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		http.Error(response, "Failed to generate token", 500)
+		return
+	}
+
+	// возвращаем токен вместо user
+	json.NewEncoder(response).Encode(map[string]string{
+		"token": token,
+	})
+}
+
+func Logout(response http.ResponseWriter, r *http.Request) {
+	response.Header().Set("Content-Type", "application/json")
+
+	token := r.Header.Get("Authorization")
+
+	if token == "" {
+		http.Error(response, "No token", 400)
+		return
+	}
+
+	tokenBlacklist[token] = true
+
+	response.Write([]byte(`{"message":"logged out"}`))
 }
