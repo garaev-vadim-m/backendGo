@@ -31,8 +31,10 @@ func main() {
 
 			r.Get("/users", handlers.GetUsers)
 			r.Get("/users/{id}", handlers.GetUserByID)
-			r.Post("/logout", handlers.Logout)
 			r.Post("/users", handlers.CreateUser)
+			r.Delete("/users/{id}", handlers.DeleteUser)
+
+			r.Post("/logout", handlers.Logout)
 		})
 	})
 
