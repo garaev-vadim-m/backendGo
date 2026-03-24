@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"go-users-api/db"
+	"go-users-api/middleware"
 	"go-users-api/models"
 	"go-users-api/utils"
 
@@ -149,14 +151,14 @@ func Login(response http.ResponseWriter, request *http.Request) {
 func Logout(response http.ResponseWriter, r *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 
-	token := r.Header.Get("Authorization")
-
-	if token == "" {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 		http.Error(response, "No token", 400)
 		return
 	}
 
-	tokenBlacklist[token] = true
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	middleware.AddToBlacklist(token)
 
 	response.Write([]byte(`{"message":"logged out"}`))
 }

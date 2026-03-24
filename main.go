@@ -31,6 +31,7 @@ func main() {
 
 			r.Get("/users", handlers.GetUsers)
 			r.Get("/users/{id}", handlers.GetUserByID)
+			r.Post("/logout", handlers.Logout)
 		})
 	})
 
