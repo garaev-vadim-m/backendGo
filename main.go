@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"go-users-api/db"
-	"go-users-api/handlers"
+	handlers "go-users-api/handlers/user"
 	"go-users-api/middleware"
 
 	"github.com/go-chi/cors"
@@ -32,6 +32,7 @@ func main() {
 			r.Get("/users", handlers.GetUsers)
 			r.Get("/users/{id}", handlers.GetUserByID)
 			r.Post("/logout", handlers.Logout)
+			r.Post("/users", handlers.CreateUser)
 		})
 	})
 
