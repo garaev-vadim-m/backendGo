@@ -10,6 +10,10 @@ import (
 
 var DB *sql.DB
 
+func seedRoles() {
+	_, _ = DB.Exec(`INSERT OR IGNORE INTO roles (id, name) VALUES (1,'admin')`)
+	_, _ = DB.Exec(`INSERT OR IGNORE INTO roles (id, name) VALUES (2,'user')`)
+}
 func seedUser() {
 	var count int
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("1111"), bcrypt.DefaultCost)
@@ -24,8 +28,8 @@ func seedUser() {
 	}
 
 	_, err = DB.Exec(`
-		INSERT INTO users (name, login, email, age, country, password)
-		VALUES (?, ?, ?, ?, ?, ?)
+		INSERT INTO users (name, login, email, age, country, password, role_id)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`,
 		"Root",
 		"root",
@@ -33,6 +37,7 @@ func seedUser() {
 		30,
 		"RU",
 		string(hashedPassword),
+		1,
 	)
 
 	if err != nil {
@@ -50,19 +55,26 @@ func InitDB() {
 		log.Fatal(err)
 	}
 	createTable()
+	seedRoles()
 	seedUser() // 👈 добавили
 }
 
 func createTable() {
 	query := `
-CREATE TABLE IF NOT EXISTS users (
-		id INTEGER PRIMARY KEY,
-		name TEXT,
-		login TEXT,
-		email TEXT,
-		age INTEGER,
-		country TEXT,
-		password TEXT
+	CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    login TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    age INTEGER,
+    country TEXT,
+    password TEXT NOT NULL,
+    role_id INTEGER NOT NULL,
+    FOREIGN KEY(role_id) REFERENCES roles(id)
+);
+CREATE TABLE IF NOT EXISTS roles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL
 );
 `
 

@@ -28,9 +28,15 @@ func Login(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	row := db.DB.QueryRow("SELECT * FROM users WHERE email = ?", req.Email)
+	row := db.DB.QueryRow(`
+    SELECT u.id, u.name, u.login, u.email, u.age, u.country, u.password, r.id, r.name
+    FROM users u
+    JOIN roles r ON u.role_id = r.id
+    WHERE u.email = ?
+`, req.Email)
 
 	var user models.User
+	var role models.Role
 	err = row.Scan(
 		&user.ID,
 		&user.Name,
@@ -39,8 +45,10 @@ func Login(response http.ResponseWriter, request *http.Request) {
 		&user.Age,
 		&user.Country,
 		&user.Password,
+		&role.ID,
+		&role.Name,
 	)
-
+	user.Role = role
 	if err != nil {
 		http.Error(response, "Invalid credentials", 401)
 		return
@@ -57,7 +65,7 @@ func Login(response http.ResponseWriter, request *http.Request) {
 	user.Password = ""
 
 	// генерируем JWT
-	token, err := utils.GenerateToken(user.ID)
+	token, err := utils.GenerateToken(user.ID, user.Role.Name)
 	if err != nil {
 		http.Error(response, "Failed to generate token", 500)
 		return

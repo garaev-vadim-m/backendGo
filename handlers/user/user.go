@@ -17,7 +17,7 @@ var tokenBlacklist = make(map[string]bool)
 func GetUsers(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 
-	rows, err := db.DB.Query("SELECT * FROM users")
+	rows, err := db.DB.Query("SELECT u.id, u.name, u.login, u.email, u.age, u.country, u.password, r.id as role_id, r.name as role_name FROM users u JOIN roles r ON u.role_id = r.id;")
 	if err != nil {
 		http.Error(response, err.Error(), 500)
 		return
@@ -36,7 +36,9 @@ func GetUsers(response http.ResponseWriter, request *http.Request) {
 			&user.Email,
 			&user.Age,
 			&user.Country,
-			&user.Password,
+			&user.Password, // обязательно!
+			&user.Role.ID,
+			&user.Role.Name,
 		)
 
 		if err != nil {
@@ -50,18 +52,22 @@ func GetUsers(response http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(response).Encode(users)
 }
 
-func GetUserByID(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Content-Type", "application/json")
+func GetUserByID(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
-	paramId := chi.URLParam(request, "id")
-
+	paramId := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(paramId)
 	if err != nil {
-		http.Error(response, "Invalid ID", 400)
+		http.Error(w, "Invalid ID", 400)
 		return
 	}
 
-	row := db.DB.QueryRow("SELECT * FROM users WHERE id = ?", id)
+	row := db.DB.QueryRow(`
+		SELECT u.id, u.name, u.login, u.email, u.age, u.country, u.password, r.id, r.name
+		FROM users u
+		JOIN roles r ON u.role_id = r.id
+		WHERE u.id = ?
+	`, id)
 
 	var user models.User
 	err = row.Scan(
@@ -72,17 +78,17 @@ func GetUserByID(response http.ResponseWriter, request *http.Request) {
 		&user.Age,
 		&user.Country,
 		&user.Password,
+		&user.Role.ID,
+		&user.Role.Name,
 	)
-
 	if err == sql.ErrNoRows {
-		http.Error(response, "User not found", 404)
+		http.Error(w, "User not found", 404)
 		return
 	}
-
 	if err != nil {
-		http.Error(response, err.Error(), 500)
+		http.Error(w, err.Error(), 500)
 		return
 	}
 
-	json.NewEncoder(response).Encode(user)
+	json.NewEncoder(w).Encode(user)
 }

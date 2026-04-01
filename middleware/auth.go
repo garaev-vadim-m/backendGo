@@ -67,7 +67,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// ✅ Передаём userID в контекст, чтобы использовать в хендлерах
 		if userID, ok := (*claims)["user_id"]; ok {
+			role, _ := (*claims)["role"].(string)
 			ctx := context.WithValue(r.Context(), "userID", userID)
+			ctx = context.WithValue(ctx, "role", role)
 			r = r.WithContext(ctx)
 		}
 
