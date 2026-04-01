@@ -12,6 +12,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func Login(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 

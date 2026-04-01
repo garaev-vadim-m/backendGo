@@ -12,11 +12,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 var tokenBlacklist = make(map[string]bool)
 
 func GetUsers(response http.ResponseWriter, request *http.Request) {

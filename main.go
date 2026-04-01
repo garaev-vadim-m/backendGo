@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"go-users-api/db"
+	auth "go-users-api/handlers/auth"
 	handlers "go-users-api/handlers/user"
 	"go-users-api/middleware"
 
@@ -24,7 +25,7 @@ func main() {
 		AllowCredentials: false,
 	}))
 	r.Route("/api", func(r chi.Router) {
-		r.Post("/login", handlers.Login)
+		r.Post("/login", auth.Login)
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AuthMiddleware)
@@ -33,8 +34,9 @@ func main() {
 			r.Get("/users/{id}", handlers.GetUserByID)
 			r.Post("/users", handlers.CreateUser)
 			r.Delete("/users/{id}", handlers.DeleteUser)
+			r.Patch("/users/{id}", handlers.UpdateUser)
 
-			r.Post("/logout", handlers.Logout)
+			r.Post("/logout", auth.Logout)
 		})
 	})
 
